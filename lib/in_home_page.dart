@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'add_plant.dart';
 
 class InHomePage extends StatefulWidget {
   const InHomePage({super.key});
@@ -38,7 +39,11 @@ class _InHomePageState extends State<InHomePage> {
                   bottom: 2,
                   right: 5,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const AddPlantPage()),
+                      );
+                    },
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.black,
                     ),
