@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'water_freq.dart';
 
 class AddPlantPage extends StatefulWidget {
@@ -9,6 +10,7 @@ class AddPlantPage extends StatefulWidget {
   State<AddPlantPage> createState() => _AddPlantPageState();
 }
 
+final user = FirebaseAuth.instance.currentUser;
 final TextEditingController selectedName = TextEditingController();
 String seletedPlantType = 'Aloes';
 WaterFreq selectedFreq = WaterFreq.onceAMonth;
@@ -16,16 +18,23 @@ final TextEditingController selectedSuggestions = TextEditingController();
 
 String iconPath = '';
 
-void savePlant(String icon, String name, String plantType, String frequency, String sugg)
-{
-  FirebaseFirestore.instance.collection('plants').add({
-    'icon' : icon,
-    'name': name,
-    'plantType': plantType,
-    'frequency': frequency,
-    'suggestions': sugg,
-    'createdAt': Timestamp.now(),
-  });
+void savePlant(String icon, String name, String plantType, String frequency, String sugg) {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user != null) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('plants')
+        .add({
+      'icon': icon,
+      'name': name,
+      'plantType': plantType,
+      'frequency': frequency,
+      'suggestions': sugg,
+      'createdAt': Timestamp.now(),
+    });
+  }
 }
 
 class IconPickerDialog extends StatelessWidget {

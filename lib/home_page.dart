@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:plant_app/sign_in_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'register_page.dart';
 import 'sign_in_page.dart';
+import 'in_home_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  final String title;
+  final title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
+
+final user = FirebaseAuth.instance.currentUser;
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
@@ -28,10 +31,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SignInPage()),
+                if(user == null)
+                {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignInPage()),
                   );
+                }
+                else{
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const InHomePage()),
+                  );
+                }
+                
               },
               child: Image.asset('assets/images/home_plant.png', width: 300),
             ),
