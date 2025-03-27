@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "617898363010",
+    "project_id": "plant-app-cbcfe",
+    "storage_bucket": "plant-app-cbcfe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:617898363010:android:c119f2ab4508cecc314c9b",
+        "android_client_info": {
+          "package_name": "com.maja.plantapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFXkv4em1osSCeysoaPN2Uwd2RZkUt434"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
