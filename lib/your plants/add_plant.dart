@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'water_freq.dart';
+import 'plants_constants.dart';
+import '../entry pages/in_home_page.dart';
 
 class AddPlantPage extends StatefulWidget {
   const AddPlantPage({super.key});
@@ -12,28 +13,35 @@ class AddPlantPage extends StatefulWidget {
 
 final user = FirebaseAuth.instance.currentUser;
 final TextEditingController selectedName = TextEditingController();
-String seletedPlantType = 'Aloes';
+String seletedPlantType = 'Succulents';
 WaterFreq selectedFreq = WaterFreq.onceAMonth;
 final TextEditingController selectedSuggestions = TextEditingController();
+DateTime? _selectedDate;
+final TextEditingController _dateController = TextEditingController();
+
 
 String iconPath = '';
 
-void savePlant(String icon, String name, String plantType, String frequency, String sugg) {
+
+Future<void> savePlant(String icon, String name, String plantType, String frequency, DateTime lastWater, String sugg) async {
   final user = FirebaseAuth.instance.currentUser;
 
   if (user != null) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('plants')
-        .add({
+  final docRef = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(user.uid)
+    .collection('plants')
+    .add({
       'icon': icon,
       'name': name,
       'plantType': plantType,
       'frequency': frequency,
+      'lastWatering': lastWater,
       'suggestions': sugg,
       'createdAt': Timestamp.now(),
     });
+
+    await docRef.update({'id': docRef.id});
   }
 }
 
@@ -42,17 +50,6 @@ class IconPickerDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> icons = [
-      'assets/images/plant_icon_1.png',
-      'assets/images/plant_icon_2.png',
-      'assets/images/plant_icon_3.png',
-      'assets/images/plant_icon_4.png',
-      'assets/images/plant_icon_5.png',
-      'assets/images/plant_icon_6.png',
-      'assets/images/plant_icon_7.png',
-      'assets/images/plant_icon_8.png',
-      'assets/images/plant_icon_9.png',
-    ];
 
     return AlertDialog(
       title: const Text("Choose an icon", style: TextStyle(fontFamily: 'Modak', fontSize: 20),),
@@ -95,7 +92,7 @@ class _AddPlantPageState extends State<AddPlantPage> {
       body: Center(
         child: Column(
           children:[
-            SizedBox(height: 150),
+            SizedBox(height: 100),
             Column(
               children: [
 
@@ -165,12 +162,11 @@ class _AddPlantPageState extends State<AddPlantPage> {
                             seletedPlantType = newValue!;
                           });
                         },
-                        items: <String>['Aloes', 'Cactus']
-                          .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
+                        items: plantTypes.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
                         }).toList(),
                         
                       ),
@@ -210,6 +206,43 @@ class _AddPlantPageState extends State<AddPlantPage> {
                   )
                 ),
                 const SizedBox(height: 15),
+
+                Text("When did you watered you plant?"),
+                Padding(
+                  padding: EdgeInsets.all(5),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: TextField(
+                      controller: _dateController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Pick a date',
+                      ),
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+
+                        if (pickedDate != null) {
+                          setState(() {
+                            _selectedDate = pickedDate;
+                            _dateController.text = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                          });
+                        }
+                      },
+                    ),
+
+                  ),
+                ),
+                const SizedBox(height: 15),
                 
                 Text("Suggestions"),
                 Padding(
@@ -230,14 +263,18 @@ class _AddPlantPageState extends State<AddPlantPage> {
                     final freqLabel = selectedFreq.label;
                     final sugg = selectedSuggestions.text.trim();
 
-                    if(name.isNotEmpty && freqLabel.isNotEmpty && iconPath.isNotEmpty)
+                    if (name.isNotEmpty && freqLabel.isNotEmpty && iconPath.isNotEmpty && _selectedDate != null)
                     {
-                      savePlant(iconPath, name, seletedPlantType, freqLabel, sugg);
+                      savePlant(iconPath, name, seletedPlantType, freqLabel, _selectedDate!, sugg);
 
                       selectedName.clear();
                       selectedSuggestions.clear();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Plant saved!')),
+                      );
+
+                      Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => InHomePage(),)
                       );
                     }
                     else{

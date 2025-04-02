@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:plant_app/register_page.dart';
+import 'register_page.dart';
 import 'in_home_page.dart';
 
 
@@ -86,6 +86,25 @@ class _SignInPageState extends State<SignInPage>
                   style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, fontSize: 15),
                 )
               ),
+
+              Row(
+                children: [
+                  Text("Don't have an account yet?",
+                  style: TextStyle(fontSize: 17)),
+                  
+                  TextButton(
+                    onPressed: (){
+                      Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => RegisterPage()),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black,
+                    ),
+                    child: Text('Register')
+                  ),
+                ],
+              )
             ],
           ),
         ),
