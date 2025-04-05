@@ -14,16 +14,19 @@ dependencies {
     // Example Firebase library (analytics)
     implementation("com.google.firebase:firebase-analytics")
     
-    // Add other Firebase libraries you need here
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 
 android {
     namespace = "com.example.plant_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        // Flag to enable support for the new language APIs
+        isCoreLibraryDesugaringEnabled = true
+        // Sets Java compatibility to Java 11
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }

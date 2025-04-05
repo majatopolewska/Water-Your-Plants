@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'plants_constants.dart';
 import '../entry pages/in_home_page.dart';
+import 'package:plant_app/main.dart';
 
 class AddPlantPage extends StatefulWidget {
   const AddPlantPage({super.key});
@@ -20,28 +22,43 @@ DateTime? _selectedDate;
 final TextEditingController _dateController = TextEditingController();
 
 
-String iconPath = '';
-
-
 Future<void> savePlant(String icon, String name, String plantType, String frequency, DateTime lastWater, String sugg) async {
   final user = FirebaseAuth.instance.currentUser;
 
   if (user != null) {
-  final docRef = await FirebaseFirestore.instance
-    .collection('users')
-    .doc(user.uid)
-    .collection('plants')
-    .add({
-      'icon': icon,
-      'name': name,
-      'plantType': plantType,
-      'frequency': frequency,
-      'lastWatering': lastWater,
-      'suggestions': sugg,
-      'createdAt': Timestamp.now(),
-    });
+    final docRef = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('plants')
+      .add({
+        'icon': icon,
+        'name': name,
+        'plantType': plantType,
+        'frequency': frequency,
+        'lastWatering': lastWater,
+        'suggestions': sugg,
+        'createdAt': Timestamp.now(),
+      });
 
     await docRef.update({'id': docRef.id});
+
+    const AndroidNotificationDetails androidNotificationDetails =
+      AndroidNotificationDetails('your channel id', 'your channel name',
+        channelDescription: 'your channel description',
+        importance: Importance.max,
+        priority: Priority.high,
+        ticker: 'ticker');
+    const NotificationDetails notificationDetails =
+      NotificationDetails(android: androidNotificationDetails);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Plant Saved!',
+      'You just added $name to your garden 🌱',
+      notificationDetails,
+      payload: docRef.id,
+    );
+
+
   }
 }
 
@@ -63,8 +80,7 @@ class IconPickerDialog extends StatelessWidget {
           children: icons.map((path) {
             return GestureDetector(
               onTap: () {
-                iconPath = path;
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(path);
               },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -85,6 +101,8 @@ class IconPickerDialog extends StatelessWidget {
 
 
 class _AddPlantPageState extends State<AddPlantPage> {
+  String iconPath = '';
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,11 +120,16 @@ class _AddPlantPageState extends State<AddPlantPage> {
                   child: Padding(
                     padding: EdgeInsets.all(5),
                     child: TextButton(
-                      onPressed: () {
-                        showDialog(
+                      onPressed: () async {
+                        final selectedIcon = await showDialog<String>(
                           context: context,
                           builder: (context) => const IconPickerDialog(),
                         );
+                        if (selectedIcon != null) {
+                          setState(() {
+                            iconPath = selectedIcon;
+                          });
+                        }
                       },
                       style: TextButton.styleFrom(
                         alignment: Alignment.center,
@@ -197,7 +220,7 @@ class _AddPlantPageState extends State<AddPlantPage> {
                         items: WaterFreq.values.map<DropdownMenuItem<WaterFreq>>((WaterFreq value) {
                           return DropdownMenuItem<WaterFreq>(
                             value: value,
-                            child: Text(value.label), // using your extension
+                            child: Text(value.label),
                           );
                         }).toList()
 
