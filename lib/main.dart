@@ -28,8 +28,6 @@ void main() async{
   final warsaw = tz.getLocation('Europe/Warsaw');
   tz.setLocalLocation(warsaw);
 
-  await scheduleWateringNotification("All Your Plants");
-
   runApp(const MainApp());
 }
 

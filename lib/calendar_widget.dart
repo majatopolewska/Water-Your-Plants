@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'your plants/plants_constants.dart';
+import 'notifications.dart';
 
 class CalendarWidget extends StatefulWidget {
   const CalendarWidget({super.key});
@@ -29,6 +30,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         .get();
 
     Map<DateTime, List<String>> events = {};
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
 
     for (var doc in snapshot.docs) {
       final data = doc.data();
@@ -50,10 +53,14 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           events[dayOnly] = [];
         }
         events[dayOnly]!.add(name);
+
+        if (dayOnly == todayDateOnly) {
+          await scheduleWateringNotification(name);
+        }
       }
     }
 
-    setState(() {
+    setState(() async {
       _wateringEvents = events;
     });
   }
