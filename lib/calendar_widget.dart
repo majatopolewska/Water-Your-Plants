@@ -104,12 +104,27 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           ..._getEventsForDay(_selectedDay ?? _focusedDay).map(
             (event) => ListTile(
               title: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("It's time to water ", style: TextStyle(fontWeight: FontWeight.bold),),
-                  Text(event, style: TextStyle(fontWeight: FontWeight.bold),),
-                  Image.asset('assets/images/watering_can.png', width: 40,),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                        children: [
+                          const TextSpan(text: "It's time to water "),
+                          TextSpan(text: event),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset('assets/images/watering_can.png', width: 40),
                 ],
-              )
+              ),
             ),
           ),
         ],

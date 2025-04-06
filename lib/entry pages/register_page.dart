@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plant_app/entry%20pages/sign_in_page.dart';
 
 class RegisterPage extends StatefulWidget
 {
@@ -22,6 +23,7 @@ Future<void> createAccount(String email, String password) async {
     );
   } catch (e) {
     print('Error creating account: $e');
+    rethrow; // Important for handling it in UI
   }
 }
 
@@ -84,8 +86,8 @@ class _RegisterPageState extends State<RegisterPage>
 
                   if (password != confirmedPassword) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Password is not correctly confirmed!")),
-                    );                      
+                      const SnackBar(content: Text("Password is not correctly confirmed!")),
+                    );
                     return;
                   }
 
@@ -94,9 +96,30 @@ class _RegisterPageState extends State<RegisterPage>
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Account created!")),
                     );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignInPage()),
+                    );
                   } catch (e) {
+                    String errorMessage = 'Unknown error';
+
+                    if (e is FirebaseAuthException) {
+                      switch (e.code) {
+                        case 'email-already-in-use':
+                          errorMessage = 'This email is already in use.';
+                          break;
+                        case 'invalid-email':
+                          errorMessage = 'Invalid email address.';
+                          break;
+                        case 'weak-password':
+                          errorMessage = 'Password should be at least 6 characters.';
+                          break;
+                      }
+                    }
+
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error: $e")),
+                      SnackBar(content: Text(errorMessage)),
                     );
                   }
                 },

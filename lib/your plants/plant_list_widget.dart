@@ -22,19 +22,46 @@ class PlantListWidget extends StatelessWidget {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 189, 221, 214),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            width: MediaQuery.of(context).size.width - 40,
-            child: const Center(
-              child: Text(
-                "No plants yet",
-                style: TextStyle(fontFamily: 'Modak', fontSize: 20),
+          return Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 189, 221, 214),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                width: MediaQuery.of(context).size.width - 40,
+                child: const Center(
+                  child: Text(
+                    "No plants yet",
+                    style: TextStyle(fontFamily: 'Modak', fontSize: 20),
+                  ),
+                ),
               ),
-            ),
+
+              Positioned(
+                bottom: 0,
+                right: 10,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddPlantPage()),
+                    );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.black,
+                  ),
+                  child: const Text(
+                    'Add Your Plant',
+                    style: TextStyle(
+                      fontSize: 12,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         }
 

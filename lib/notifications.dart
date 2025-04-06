@@ -7,7 +7,7 @@ import 'package:plant_app/main.dart';
 
 Future<void> scheduleWateringNotification(String plantName) async {
   final now = tz.TZDateTime.now(tz.local);
-  tz.TZDateTime scheduledDate = tz.TZDateTime.local(now.year, now.month, now.day, 12, 25);
+  tz.TZDateTime scheduledDate = tz.TZDateTime.local(now.year, now.month, now.day, 12, 25 );
 
   if (scheduledDate.isBefore(now)) {
     scheduledDate = scheduledDate.add(Duration(days: 1));

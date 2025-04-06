@@ -46,7 +46,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
                 
               },
-              child: Image.asset('assets/images/home_plant.png', width: 300),
+              child: Column(
+                children: [
+                  Image.asset('assets/images/home_plant.png', width: 300),
+
+                  Text("Click on me to enter the app", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),)
+                ]
+              ),
             ),
 
             SizedBox(height: 30),
