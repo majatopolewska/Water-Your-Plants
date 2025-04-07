@@ -7,7 +7,7 @@ import 'plants_constants.dart';
 import '../entry pages/in_home_page.dart';
 import 'package:plant_app/main.dart';
 import 'icon_add_plant.dart';
-import '../care details/api.dart';
+import '../care details/find_api_id.dart';
 
 class AddPlantPage extends StatefulWidget {
   const AddPlantPage({super.key});

@@ -3,15 +3,18 @@ import 'dart:convert';
 
 class PlantService
 {
-  Future<Map<String, dynamic>> fetchPlantDetails(int plantId) async {
-    final response = await http.get(
-      Uri.parse('https://perenual.com/api/species-care-guide-list/$plantId?key=YOUR_API_KEY'),
-    );
+  Future<String?> fetchSunlightInfo(int plantId) async {
+    final response = await http.get(Uri.parse(
+      'https://perenual.com/api/species-care-guide-list/$plantId?key=sk-PLSA67f43a133cacd9643',
+    ));
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load plant care guide');
+      final data = jsonDecode(response.body);
+      final sunlight = data['sunlight'];
+      if (sunlight != null && sunlight is List) {
+        return sunlight.join(', ');
+      }
     }
+    return null;
   }
 }

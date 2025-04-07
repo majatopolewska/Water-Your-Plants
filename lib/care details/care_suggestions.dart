@@ -12,7 +12,7 @@ class CareSuggestionsWidget extends StatefulWidget {
 }
 
 class _CareSuggestionsWidgetState extends State<CareSuggestionsWidget> {
-  Future<Map<String, dynamic>>? _careFuture;
+  Future<String?>? _sunlightFuture;
 
   @override
   void initState() {
@@ -21,6 +21,7 @@ class _CareSuggestionsWidgetState extends State<CareSuggestionsWidget> {
   }
 
   void _loadCareData() async {
+
     final userPlantsSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -29,10 +30,10 @@ class _CareSuggestionsWidgetState extends State<CareSuggestionsWidget> {
 
     if (userPlantsSnapshot.docs.isNotEmpty) {
       final firstPlant = userPlantsSnapshot.docs.first;
-      final plantId = firstPlant['plant_id']; // Make sure your Firestore document has this field
+      final plantId = firstPlant['plant_id'];
 
       setState(() {
-        _careFuture = PlantService().fetchPlantDetails(plantId);
+        _sunlightFuture = PlantService().fetchSunlightInfo(plantId);
       });
     }
   }
@@ -81,37 +82,27 @@ class _CareSuggestionsWidgetState extends State<CareSuggestionsWidget> {
                 borderRadius: BorderRadius.circular(15),
                 color: const Color.fromARGB(255, 189, 221, 214),
               ),
-              child: _careFuture == null
-                  ? const Center(child: Text('Loading plant care...'))
-                  : FutureBuilder<Map<String, dynamic>>(
-                      future: _careFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          return const Center(child: CircularProgressIndicator());
+              child: _sunlightFuture == null
+                ? const Center(child: Text('Loading plant care...'))
+                : FutureBuilder<String?>(
+                  future: _sunlightFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      return const Center(child: CircularProgressIndicator());
 
-                        if (snapshot.hasError)
-                          return Center(child: Text('Error: ${snapshot.error}'));
+                    if (snapshot.hasError)
+                      return Center(child: Text('Error: ${snapshot.error}'));
 
-                        final careData = snapshot.data!;
-                        final watering = careData['watering'] ?? 'N/A';
-                        final sunlight = careData['sunlight'] ?? 'N/A';
-                        final pruning = careData['pruning'] ?? 'N/A';
-                        final soil = careData['soil'] ?? 'N/A';
+                    final sunlight = snapshot.data ?? 'No sunlight info';
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Watering: $watering', style: TextStyle(fontSize: 16)),
-                            SizedBox(height: 8),
-                            Text('Sunlight: $sunlight', style: TextStyle(fontSize: 16)),
-                            SizedBox(height: 8),
-                            Text('Soil: $soil', style: TextStyle(fontSize: 16)),
-                            SizedBox(height: 8),
-                            Text('Pruning: $pruning', style: TextStyle(fontSize: 16)),
-                          ],
-                        );
-                      },
-                    ),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('☀️ Sunlight: $sunlight', style: TextStyle(fontSize: 16)),
+                      ],
+                    );
+                  },
+                )
             ),
             const Positioned(
               top: 10,

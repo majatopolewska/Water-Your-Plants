@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'plants_constants.dart';
 import '../entry pages/in_home_page.dart';
-import '../care details/api.dart';
+import '../care details/find_api_id.dart';
 import 'plant_page.dart';
 
 class EditPlantPage extends StatefulWidget {
