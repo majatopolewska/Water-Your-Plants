@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import 'plants_constants.dart';
 import '../entry pages/in_home_page.dart';
 import 'package:plant_app/main.dart';
 import 'icon_add_plant.dart';
+import '../care details/api.dart';
 
 class AddPlantPage extends StatefulWidget {
   const AddPlantPage({super.key});
@@ -27,6 +29,9 @@ Future<void> savePlant(String icon, String name, String plantType, String freque
   final user = FirebaseAuth.instance.currentUser;
 
   if (user != null) {
+    final apiId = ApiId();
+    final perenualPlantId = await apiId.fetchPerenualPlantId(plantType);
+
     final docRef = await FirebaseFirestore.instance
       .collection('users')
       .doc(user.uid)
@@ -39,6 +44,7 @@ Future<void> savePlant(String icon, String name, String plantType, String freque
         'lastWatering': lastWater,
         'suggestions': sugg,
         'createdAt': Timestamp.now(),
+        'plant_id': perenualPlantId,
       });
 
     await docRef.update({'id': docRef.id});
@@ -60,8 +66,6 @@ Future<void> savePlant(String icon, String name, String plantType, String freque
     );
   }
 }
-
-
 
 
 class _AddPlantPageState extends State<AddPlantPage> {

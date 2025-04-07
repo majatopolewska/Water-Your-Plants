@@ -19,57 +19,52 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  Future<void> _loadWateringEvents() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('plants')
-        .get();
-
-    Map<DateTime, List<String>> events = {};
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      final name = data['name'];
-      final lastWater = (data['lastWatering'] as Timestamp).toDate();
-      final freq = data['frequency'];
-
-      int daysToAdd = getDaysBetweenWaterings(freq);
-      DateTime endPeriod = DateTime(lastWater.year, lastWater.month + 3, lastWater.day);
-      DateTime nextWater = lastWater;
-
-      while(nextWater.isBefore(endPeriod))
-      {
-        nextWater = nextWater.add(Duration(days: daysToAdd));
-
-        DateTime dayOnly = DateTime(nextWater.year, nextWater.month, nextWater.day);
-
-        if (!events.containsKey(dayOnly)) {
-          events[dayOnly] = [];
-        }
-        events[dayOnly]!.add(name);
-
-        if (dayOnly == todayDateOnly) {
-          await scheduleWateringNotification(name);
-        }
-      }
-    }
-
-    setState(() async {
-      _wateringEvents = events;
-    });
-  }
-
-
   @override
   void initState() {
     super.initState();
-    _loadWateringEvents();
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('plants')
+        .snapshots()
+        .listen((snapshot) async {
+      Map<DateTime, List<String>> events = {};
+      final today = DateTime.now();
+      final todayDateOnly = DateTime(today.year, today.month, today.day);
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final name = data['name'];
+        final lastWater = (data['lastWatering'] as Timestamp).toDate();
+        final freq = data['frequency'];
+
+        int daysToAdd = getDaysBetweenWaterings(freq);
+        DateTime endPeriod = DateTime(lastWater.year, lastWater.month + 3, lastWater.day);
+        DateTime nextWater = lastWater;
+
+        while (nextWater.isBefore(endPeriod)) {
+          nextWater = nextWater.add(Duration(days: daysToAdd));
+          DateTime dayOnly = DateTime(nextWater.year, nextWater.month, nextWater.day);
+
+          if (!events.containsKey(dayOnly)) {
+            events[dayOnly] = [];
+          }
+          events[dayOnly]!.add(name);
+
+          if (dayOnly == todayDateOnly) {
+            await scheduleWateringNotification(name);
+          }
+        }
+      }
+
+      setState(() {
+        _wateringEvents = events;
+      });
+    });
   }
 
   List<String> _getEventsForDay(DateTime day) {
@@ -131,5 +126,4 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       ),
     );
   }
-
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:plant_app/calendar_widget.dart';
+import 'package:plant_app/care%20details/care_suggestions.dart';
 
 import '../your plants/add_plant.dart';
 import '../your plants/plant_list_widget.dart';
@@ -53,6 +54,10 @@ class _InHomePageState extends State<InHomePage> {
 
                 const SizedBox(height: 20),
                 const CalendarWidget(),
+                
+                const SizedBox(height: 20),
+                const CareSuggestionsWidget(),
+
               ],
             ),
           ),

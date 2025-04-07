@@ -1,17 +1,14 @@
 List<String> plantTypes = [
-  'Succulents',
-  'Cacti',
-  'Ferns',
-  'Orchids',
-  'Philodendrons',
-  'Pothos',
-  'Snake Plants',
-  'Peace Lilies',
-  'Fiddle Leaf Figs',
-  'Spider Plants',
-  'ZZ Plants'
+    'Succulents',
+    'Cacti',
+    'Monstera',
+    'Spider Plants',
+    'Pothos',
+    'Orchids',
+    'Columbine',
+    'Snake Plants',
+    'Lilies',
 ];
-
 
 List<String> icons = [
   'assets/images/plant_icon_1.png',

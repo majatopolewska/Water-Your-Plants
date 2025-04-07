@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'plants_constants.dart';
 import '../entry pages/in_home_page.dart';
+import '../care details/api.dart';
+import 'plant_page.dart';
 
 class EditPlantPage extends StatefulWidget {
   final Map<String, dynamic> plantData;
@@ -21,10 +23,13 @@ String iconPath = '';
 DateTime? _selectedDate;
 final TextEditingController _dateController = TextEditingController();
 
-Future<void> savePlant(String icon, String name, String plantType, String frequency, DateTime lastWater, String sugg) async {
+Future<void> savePlant(BuildContext context,String icon, String name, String plantType, String frequency, DateTime lastWater, String sugg) async {
   final user = FirebaseAuth.instance.currentUser;
 
   if (user != null) {
+    final apiId = ApiId();
+    final perenualPlantId = await apiId.fetchPerenualPlantId(plantType);
+
     final docRef = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -38,7 +43,17 @@ Future<void> savePlant(String icon, String name, String plantType, String freque
       'frequency': frequency,
       'lastWatering': lastWater,
       'suggestions': sugg,
+      'plant_id': perenualPlantId,
     });
+
+    final updatedDoc = await docRef.get();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlantPage(plantData: updatedDoc.data()!..['id'] = updatedDoc.id),
+      ),
+    );
   }
 }
 
@@ -88,7 +103,7 @@ class _EditPlantPageState extends State<EditPlantPage> {
     super.initState();
     final data = widget.plantData;
 
-    selectedPlantId = data['id']; // Store plant ID for update
+    selectedPlantId = data['id'];
     selectedName.text = data['name'] ?? '';
     seletedPlantType = data['plantType'] ?? 'Succulents';
     selectedFreq = WaterFreq.values.firstWhere(
@@ -97,6 +112,11 @@ class _EditPlantPageState extends State<EditPlantPage> {
     );
     selectedSuggestions.text = data['suggestions'] ?? '';
     iconPath = data['icon'] ?? '';
+
+    if (data['lastWatering'] != null) {
+      _selectedDate = (data['lastWatering'] as Timestamp).toDate();
+      _dateController.text = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
+    }
   }
 
   @override
@@ -268,14 +288,11 @@ class _EditPlantPageState extends State<EditPlantPage> {
                 final sugg = selectedSuggestions.text.trim();
 
                 if (name.isNotEmpty && freqLabel.isNotEmpty && iconPath.isNotEmpty) {
-                  savePlant(iconPath, name, seletedPlantType, freqLabel, _selectedDate!, sugg);
+                  
+                  savePlant(context, iconPath, name, seletedPlantType, freqLabel, _selectedDate!, sugg);
 
                   selectedName.clear();
                   selectedSuggestions.clear();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Changes saved!')),
-                  );
 
                   Navigator.pushReplacement(
                     context,
