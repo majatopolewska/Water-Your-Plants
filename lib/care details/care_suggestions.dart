@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plant_app/your%20plants/edit_plant.dart';
 
 import 'plant_service.dart';
 
@@ -11,110 +12,115 @@ class CareSuggestionsWidget extends StatefulWidget {
   State<CareSuggestionsWidget> createState() => _CareSuggestionsWidgetState();
 }
 
+List<Map<String, dynamic>> _userPlants = [];
+
 class _CareSuggestionsWidgetState extends State<CareSuggestionsWidget> {
-  Future<String?>? _sunlightFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadCareData();
+    _loadPlantDetails();
   }
 
-  void _loadCareData() async {
+  void _loadPlantDetails() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
 
-    final userPlantsSnapshot = await FirebaseFirestore.instance
+    final snapshot = await FirebaseFirestore.instance
         .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .doc(userId)
         .collection('plants')
         .get();
 
-    if (userPlantsSnapshot.docs.isNotEmpty) {
-      final firstPlant = userPlantsSnapshot.docs.first;
-      final plantId = firstPlant['plant_id'];
-
-      setState(() {
-        _sunlightFuture = PlantService().fetchSunlightInfo(plantId);
-      });
-    }
+    setState(() {
+      _userPlants = snapshot.docs.map((doc) => doc.data()).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection('plants')
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        }
+    if (_userPlants.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 189, 221, 214),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        width: MediaQuery.of(context).size.width - 40,
+        child: const Center(
+          child: Text(
+            "No plants yet",
+            style: TextStyle(fontFamily: 'Modak', fontSize: 20),
+          ),
+        ),
+      );
+    }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 189, 221, 214),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            width: MediaQuery.of(context).size.width - 40,
-            child: const Center(
-              child: Text(
-                "No plants yet",
-                style: TextStyle(fontFamily: 'Modak', fontSize: 20),
-              ),
-            ),
-          );
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 10, bottom: 10),
+          child: Text(
+            "Care suggestions",
+            style: TextStyle(fontFamily: 'Modak', fontSize: 25),
+          ),
+        ),
+        ..._userPlants.map((plant) {
+          final plantId = plant['plant_id'];
+          final plantName = plant['name'];
+          final iconPath = plant['icon'];
 
-        final plants = snapshot.data!.docs;
-        final int rows = (plants.length / 5).ceil();
-        final double containerHeight = (rows * 60) + 80;
+          return FutureBuilder<Map<String, dynamic>?>(
+            future: PlantService().fetchPlantDetails(plantId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: LinearProgressIndicator(),
+                );
+              }
 
-        return Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width - 40,
-              height: containerHeight,
-              padding: const EdgeInsets.fromLTRB(15, 50, 15, 30),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: const Color.fromARGB(255, 189, 221, 214),
-              ),
-              child: _sunlightFuture == null
-                ? const Center(child: Text('Loading plant care...'))
-                : FutureBuilder<String?>(
-                  future: _sunlightFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      return const Center(child: CircularProgressIndicator());
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const SizedBox(); // Or show a fallback card
+              }
 
-                    if (snapshot.hasError)
-                      return Center(child: Text('Error: ${snapshot.error}'));
+              final data = snapshot.data!;
+              final sunlight = (data['sunlight'] as List<dynamic>?)?.join(', ') ?? 'Unknown';
+              final watering = data['watering'] ?? 'Unknown';
 
-                    final sunlight = snapshot.data ?? 'No sunlight info';
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: const Color.fromARGB(255, 189, 221, 214),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text('☀️ Sunlight: $sunlight', style: TextStyle(fontSize: 16)),
+                        if (iconPath != null)
+                          Image.asset(iconPath, width: 25),
+                        const SizedBox(width: 8),
+                        Text(
+                          plantName,
+                          style: const TextStyle(fontSize: 20, fontFamily: 'Modak'),
+                        ),
                       ],
-                    );
-                  },
-                )
-            ),
-            const Positioned(
-              top: 10,
-              left: 10,
-              child: Text(
-                "Care suggestions",
-                style: TextStyle(fontFamily: 'Modak', fontSize: 25),
-              ),
-            ),
-          ],
-        );
-      },
+                    ),
+                    const SizedBox(height: 8),
+                    Text('☀️ Sunlight: $sunlight', style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 8),
+                    Text('💧 Watering: $watering', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ],
     );
   }
 }
