@@ -1,6 +1,6 @@
 # 🌿 Water Your Plants
 
-A mobile application built with **Flutter** that reminds you when to water your plants, so your green friends stay happy and healthy.
+A mobile application built with **Flutter** that reminds you when to water your plants, so your green friends stay happy and healthy. Cloud storage and authentication is powered by Firebase.
 
 ## Features
 
